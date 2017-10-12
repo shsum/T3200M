@@ -7,7 +7,7 @@ image.  To build an image, enter:
 
 For example,
 
-# make PROFILE=96368GW
+# make PROFILE=963138BGW
 
 The final image is located in the images subdirectory.  This image can be
 specified in the BCM963xx Web interface image upgrade item in order to
