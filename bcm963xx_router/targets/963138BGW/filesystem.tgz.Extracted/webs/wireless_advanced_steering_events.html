@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>_(Wireless Setup)_ - _(SmartSteering&#8482 Events)_</title>
+<link href="../css/basic.css" rel="stylesheet" type="text/css" />
+<script language="JavaScript" src="../js/nav.js"></script>
+<script language="JavaScript" src="js/htmldecode.js"></script>
+<script language="Javascript">
+
+var sessionKey='<%ejGetOther(sessionKey)%>';
+
+function do_load()
+{
+    side_nav("wirelesssetup_band_steering");
+}
+
+function dom_load(){ do_load(); }
+
+</script>
+</head>
+<body>
+<div id="wrapper">
+    <!-- TOP NAV -->
+    <%ejInclude(top_btn_nav3.html)%>
+    <!-- END TOP NAV -->
+    <!-- SIDE NAV -->
+    <%ejInclude(wireless_left.html)%>
+    <!-- END SIDE NAV -->
+
+    <!-- MAIN CONTENT AREA -->
+    <div id="content_right">
+      <div id="content_right_header"></div>
+        <div id="content_right_contentarea">
+          <h1 class="advancedsetup_security">_(SmartSteering&#8482 Events)_</h1>
+             <form id="myform" name="myform">
+              <table class="status_absEvt" style="margin:10px 40px 0 auto;" id="bandSteeringTable" align="center" width="100%" border="0" cellpadding="0" cellspacing="0">
+                <tr align="center">
+                  <th width="10%">_(station)_</th>
+                  <th width="5%">_(date/time)_</th>
+                  <th width="15%">_(from)_</th>
+                  <th width="15%">_(to)_</th>
+                  <th width="20%">_(Origin/Target-RCPI)_</th>
+                  <th width="5%">_(result)_</th>
+                  <th width="30%">_(trigger)_</th>
+                </tr>
+                <%ejGetWlAbsEvents()%>
+              </table>
+            </form>
+          <div class="clear_left"></div>
+        </div>
+      <div id="content_right_footer"></div>
+    </div>
+   <div class="clear_left"></div>
+  <div id="footer">&nbsp;</div>
+</div>
+<script language="javascript">
+var foobar = new domFunction(dom_load);
+</script>
+</body>
+</html>

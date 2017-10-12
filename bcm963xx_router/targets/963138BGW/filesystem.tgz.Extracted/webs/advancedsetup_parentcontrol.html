@@ -1,0 +1,766 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>_(Advanced Setup)_ - _(Blocking/Filtering)_ - _(Parental Controls)_</title>
+<link href="css/basic.css" rel="stylesheet" type="text/css" />
+<SCRIPT LANGUAGE="JavaScript" SRC="js/functions.js" TYPE="text/javascript"></SCRIPT>
+<script language="JavaScript" src="js/util.js"></script>
+<script language="JavaScript" src="js/nav.js"></script>
+<script language="JavaScript" src="js/htmldecode.js"></script>
+<script language="Javascript">
+
+var devinfo='<%ejGetOther(sysInfo,DevInfo)%>';
+var devinfo_list=devinfo.split("|");
+var sessionKey='<%ejGetOther(sessionKey)%>';
+
+var pc_enable = "<%ejGetOther(parentControlEnable)%>"
+pc_host_info=htmlDecodeStr("<%ejGetOther(parentControlHostInfo)%>");
+pc_rules_info=htmlDecodeStr("<%ejGetOther(parentControlRules)%>");
+//pc_rules_info="all//Restrict/www.google.com/0/8:00 AM/9:00 PM/Everyday|00:00:00:00:00:03/Bob-BlackBerry/Restrict/www.youtube.com/1/8:00 AM/9:00 PM/Mondays";
+var hostinfo = htmlDecodeStr('<%ejGetOther(hostinfoAll)%>');
+//var hostinfo = 'Unknown/192.168.1.200/e0:cb:4e:fc:36:0b/Ethernet/Static/1/0|iPhone/192.168.1.64/7c:01:91:9f:46:26/Ethernet/DHCP/0';
+var pc_rules_list = pc_rules_info.split("|").map(function(x){return x.split("/")});
+var pc_hosts_list = pc_host_info.split("|").map(function(x){return x.split("/")});
+var hosts = hostinfo.split("|").map(function(x){return x.split("/")});
+
+var ruleDeviceName="";
+var ruleDeviceMac="";
+var modify_ruleID="";
+if(pc_rules_info.length==0)
+{
+    pc_rules_list.length=0;
+}
+if(pc_host_info.length==0)
+{
+    pc_hosts_list.length=0;
+}
+if(hostinfo.length==0)
+{
+    hosts.length=0;
+}
+for(k=0;k<hosts.length;k++)
+{
+    if(pc_host_info.indexOf(hosts[k][2])==-1)
+    {
+        pc_hosts_list.push([hosts[k][0],hosts[k][2],'0']);
+    }
+}
+
+function setAsChild(index)
+{
+    pc_hosts_list[index][2]='1';
+}
+function setAsParent(index)
+{
+    pc_hosts_list[index][2]='0';
+}
+
+function set_device(name,mac)
+{
+    modify_ruleID="";
+    ruleDeviceName=name;
+    ruleDeviceMac=mac;
+    document.getElementById("child_restrictions_input").style.display = "inline";
+    document.getElementById("span_list_rules").innerHTML= list_pc_rules_table(name,mac);
+}
+
+function set_children()
+{
+    modify_ruleID="";
+    ruleDeviceName="all";
+    ruleDeviceMac="all";
+    document.getElementById("child_restrictions_input").style.display = "inline";
+    document.getElementById("span_list_rules").innerHTML= list_pc_rules_table('all','all');
+}
+
+function list_pc_rules_table(name,mac)
+{
+    var i,j;
+    var htmlStr="";
+    
+   htmlStr +="<form>"
+   if(name=='all'){
+       htmlStr +="            <h3>_(Childs' Restrictions)_ (_(apply to all CHILD devices)_)</h3>"
+   }else
+   {
+       htmlStr +="            <h3>_(Childs' Restrictions)_  (_(apply only to)_ " + name + ")</h3>"
+   }
+   htmlStr +="            <table table class=\"status_style\" style=\"margin: 10px auto 0pt;\" align=\"center\" border=\"0\" cellpadding=\"5\" cellspacing=\"0\" width=\"95%\">"
+   htmlStr +="                <tbody><tr>"
+   htmlStr +="                    <td>"
+   htmlStr +="                        <input type=\"radio\" name=\"RA\" id=\"RA_restrict\" checked=\"\">_(Restrict)_<br>"
+   htmlStr +="                        <input type=\"radio\" name=\"RA\" id=\"RA_allow\">_(Allow)_<br>"
+   htmlStr +="                        <p></p>"
+   htmlStr +="                    </td>"
+   htmlStr +="                    <td>"
+   htmlStr +="                        <input type=\"radio\" name=\"AT\" id=\"AT_allpages\" checked=\"\" onclick=setStateById('AT_webpage',true)>_(All Webpages)_<br>"
+   htmlStr +="                        <input type=\"radio\" name=\"AT\" id=\"AT_webpage1\" onclick=setStateById('AT_webpage',false)>_(This Webpage)_:<br>"
+   htmlStr +="                        <input type=\"text\" id=\"AT_webpage\" placeholder=\"www.example.com\" class=\"font100\" disabled>"
+   htmlStr +="                    </td>"
+   htmlStr +="                    <td>"
+   htmlStr +="                        <input type=\"radio\" name=\"AF\" id=\"isAlways\" checked=\"\" onclick=\"setStateById('startTime',true);setStateById('endTime',true)\">_(Always)_<br>"
+   htmlStr +="                        <input type=\"radio\" name=\"AF\" id=\"isNotAlways\" onclick=\"setStateById('startTime',false);setStateById('endTime',false)\">"
+htmlStr +='_(From)_ <select name="fromtime" id="startTime" disabled>'
+htmlStr +='<option value="0">12:00 AM</>'
+htmlStr +='<option value="100">1:00 AM</>'
+htmlStr +='<option value="115">1:15 AM</>'
+htmlStr +='<option value="130">1:30 AM</>'
+htmlStr +='<option value="145">1:45 AM</>'
+htmlStr +='<option value="200">2:00 AM</>'
+htmlStr +='<option value="215">2:15 AM</>'
+htmlStr +='<option value="230">2:30 AM</>'
+htmlStr +='<option value="245">2:45 AM</>'
+htmlStr +='<option value="300">3:00 AM</>'
+htmlStr +='<option value="315">3:15 AM</>'
+htmlStr +='<option value="330">3:30 AM</>'
+htmlStr +='<option value="345">3:45 AM</>'
+htmlStr +='<option value="400">4:00 AM</>'
+htmlStr +='<option value="415">4:15 AM</>'
+htmlStr +='<option value="430">4:30 AM</>'
+htmlStr +='<option value="445">4:45 AM</>'
+htmlStr +='<option value="500">5:00 AM</>'
+htmlStr +='<option value="515">5:15 AM</>'
+htmlStr +='<option value="530">5:30 AM</>'
+htmlStr +='<option value="545">5:45 AM</>'
+htmlStr +='<option value="600">6:00 AM</>'
+htmlStr +='<option value="615">6:15 AM</>'
+htmlStr +='<option value="630">6:30 AM</>'
+htmlStr +='<option value="645">6:45 AM</>'
+htmlStr +='<option value="700">7:00 AM</>'
+htmlStr +='<option value="715">7:15 AM</>'
+htmlStr +='<option value="730">7:30 AM</>'
+htmlStr +='<option value="745">7:45 AM</>'
+htmlStr +='<option value="800">8:00 AM</>'
+htmlStr +='<option value="815">8:15 AM</>'
+htmlStr +='<option value="830">8:30 AM</>'
+htmlStr +='<option value="845">8:45 AM</>'
+htmlStr +='<option value="900">9:00 AM</>'
+htmlStr +='<option value="915">9:15 AM</>'
+htmlStr +='<option value="930">9:30 AM</>'
+htmlStr +='<option value="945">9:45 AM</>'
+htmlStr +='<option value="1000">10:00 AM</>'
+htmlStr +='<option value="1015">10:15 AM</>'
+htmlStr +='<option value="1030">10:30 AM</>'
+htmlStr +='<option value="1045">10:45 AM</>'
+htmlStr +='<option value="1100">11:00 AM</>'
+htmlStr +='<option value="1115">11:15 AM</>'
+htmlStr +='<option value="1130">11:30 AM</>'
+htmlStr +='<option value="1145">11:45 AM</>'
+htmlStr +='<option value="1200" selected="selected">12:00 PM</>'
+htmlStr +='<option value="1215">12:15 PM</>'
+htmlStr +='<option value="1230">12:30 PM</>'
+htmlStr +='<option value="1245">12:45 PM</>'
+htmlStr +='<option value="1300">1:00 PM</>'
+htmlStr +='<option value="1315">1:15 PM</>'
+htmlStr +='<option value="1330">1:30 PM</>'
+htmlStr +='<option value="1345">1:45 PM</>'
+htmlStr +='<option value="1400">2:00 PM</>'
+htmlStr +='<option value="1415">2:15 PM</>'
+htmlStr +='<option value="1430">2:30 PM</>'
+htmlStr +='<option value="1445">2:45 PM</>'
+htmlStr +='<option value="1500">3:00 PM</>'
+htmlStr +='<option value="1515">3:15 PM</>'
+htmlStr +='<option value="1530">3:30 PM</>'
+htmlStr +='<option value="1545">3:45 PM</>'
+htmlStr +='<option value="1600">4:00 PM</>'
+htmlStr +='<option value="1615">4:15 PM</>'
+htmlStr +='<option value="1630">4:30 PM</>'
+htmlStr +='<option value="1645">4:45 PM</>'
+htmlStr +='<option value="1700">5:00 PM</>'
+htmlStr +='<option value="1715">5:15 PM</>'
+htmlStr +='<option value="1730">5:30 PM</>'
+htmlStr +='<option value="1745">5:45 PM</>'
+htmlStr +='<option value="1800">6:00 PM</>'
+htmlStr +='<option value="1815">6:15 PM</>'
+htmlStr +='<option value="1830">6:30 PM</>'
+htmlStr +='<option value="1845">6:45 PM</>'
+htmlStr +='<option value="1900">7:00 PM</>'
+htmlStr +='<option value="1915">7:15 PM</>'
+htmlStr +='<option value="1930">7:30 PM</>'
+htmlStr +='<option value="1945">7:45 PM</>'
+htmlStr +='<option value="2000">8:00 PM</>'
+htmlStr +='<option value="2015">8:15 PM</>'
+htmlStr +='<option value="2030">8:30 PM</>'
+htmlStr +='<option value="2045">8:45 PM</>'
+htmlStr +='<option value="2100">9:00 PM</>'
+htmlStr +='<option value="2115">9:15 PM</>'
+htmlStr +='<option value="2130">9:30 PM</>'
+htmlStr +='<option value="2145">9:45 PM</>'
+htmlStr +='<option value="2200">10:00 PM</>'
+htmlStr +='<option value="2215">10:15 PM</>'
+htmlStr +='<option value="2230">10:30 PM</>'
+htmlStr +='<option value="2245">10:45 PM</>'
+htmlStr +='<option value="2300">11:00 PM</>'
+htmlStr +='<option value="2315">11:15 PM</>'
+htmlStr +='<option value="2330">11:30 PM</>'
+htmlStr +='<option value="2345">11:45 PM</option>'
+htmlStr +='</select>'
+htmlStr +='<br>_(To)_ <select name="endtime" id="endTime" disabled>'
+htmlStr +='<option value="0">12:00 AM</>'
+htmlStr +='<option value="100">1:00 AM</>'
+htmlStr +='<option value="115">1:15 AM</>'
+htmlStr +='<option value="130">1:30 AM</>'
+htmlStr +='<option value="145">1:45 AM</>'
+htmlStr +='<option value="200">2:00 AM</>'
+htmlStr +='<option value="215">2:15 AM</>'
+htmlStr +='<option value="230">2:30 AM</>'
+htmlStr +='<option value="245">2:45 AM</>'
+htmlStr +='<option value="300">3:00 AM</>'
+htmlStr +='<option value="315">3:15 AM</>'
+htmlStr +='<option value="330">3:30 AM</>'
+htmlStr +='<option value="345">3:45 AM</>'
+htmlStr +='<option value="400">4:00 AM</>'
+htmlStr +='<option value="415">4:15 AM</>'
+htmlStr +='<option value="430">4:30 AM</>'
+htmlStr +='<option value="445">4:45 AM</>'
+htmlStr +='<option value="500">5:00 AM</>'
+htmlStr +='<option value="515">5:15 AM</>'
+htmlStr +='<option value="530">5:30 AM</>'
+htmlStr +='<option value="545">5:45 AM</>'
+htmlStr +='<option value="600">6:00 AM</>'
+htmlStr +='<option value="615">6:15 AM</>'
+htmlStr +='<option value="630">6:30 AM</>'
+htmlStr +='<option value="645">6:45 AM</>'
+htmlStr +='<option value="700">7:00 AM</>'
+htmlStr +='<option value="715">7:15 AM</>'
+htmlStr +='<option value="730">7:30 AM</>'
+htmlStr +='<option value="745">7:45 AM</>'
+htmlStr +='<option value="800">8:00 AM</>'
+htmlStr +='<option value="815">8:15 AM</>'
+htmlStr +='<option value="830">8:30 AM</>'
+htmlStr +='<option value="845">8:45 AM</>'
+htmlStr +='<option value="900">9:00 AM</>'
+htmlStr +='<option value="915">9:15 AM</>'
+htmlStr +='<option value="930">9:30 AM</>'
+htmlStr +='<option value="945">9:45 AM</>'
+htmlStr +='<option value="1000">10:00 AM</>'
+htmlStr +='<option value="1015">10:15 AM</>'
+htmlStr +='<option value="1030">10:30 AM</>'
+htmlStr +='<option value="1045">10:45 AM</>'
+htmlStr +='<option value="1100">11:00 AM</>'
+htmlStr +='<option value="1115">11:15 AM</>'
+htmlStr +='<option value="1130">11:30 AM</>'
+htmlStr +='<option value="1145">11:45 AM</>'
+htmlStr +='<option value="1200" selected="selected">12:00 PM</>'
+htmlStr +='<option value="1215">12:15 PM</>'
+htmlStr +='<option value="1230">12:30 PM</>'
+htmlStr +='<option value="1245">12:45 PM</>'
+htmlStr +='<option value="1300">1:00 PM</>'
+htmlStr +='<option value="1315">1:15 PM</>'
+htmlStr +='<option value="1330">1:30 PM</>'
+htmlStr +='<option value="1345">1:45 PM</>'
+htmlStr +='<option value="1400">2:00 PM</>'
+htmlStr +='<option value="1415">2:15 PM</>'
+htmlStr +='<option value="1430">2:30 PM</>'
+htmlStr +='<option value="1445">2:45 PM</>'
+htmlStr +='<option value="1500">3:00 PM</>'
+htmlStr +='<option value="1515">3:15 PM</>'
+htmlStr +='<option value="1530">3:30 PM</>'
+htmlStr +='<option value="1545">3:45 PM</>'
+htmlStr +='<option value="1600">4:00 PM</>'
+htmlStr +='<option value="1615">4:15 PM</>'
+htmlStr +='<option value="1630">4:30 PM</>'
+htmlStr +='<option value="1645">4:45 PM</>'
+htmlStr +='<option value="1700">5:00 PM</>'
+htmlStr +='<option value="1715">5:15 PM</>'
+htmlStr +='<option value="1730">5:30 PM</>'
+htmlStr +='<option value="1745">5:45 PM</>'
+htmlStr +='<option value="1800">6:00 PM</>'
+htmlStr +='<option value="1815">6:15 PM</>'
+htmlStr +='<option value="1830">6:30 PM</>'
+htmlStr +='<option value="1845">6:45 PM</>'
+htmlStr +='<option value="1900">7:00 PM</>'
+htmlStr +='<option value="1915">7:15 PM</>'
+htmlStr +='<option value="1930">7:30 PM</>'
+htmlStr +='<option value="1945">7:45 PM</>'
+htmlStr +='<option value="2000">8:00 PM</>'
+htmlStr +='<option value="2015">8:15 PM</>'
+htmlStr +='<option value="2030">8:30 PM</>'
+htmlStr +='<option value="2045">8:45 PM</>'
+htmlStr +='<option value="2100">9:00 PM</>'
+htmlStr +='<option value="2115">9:15 PM</>'
+htmlStr +='<option value="2130">9:30 PM</>'
+htmlStr +='<option value="2145">9:45 PM</>'
+htmlStr +='<option value="2200">10:00 PM</>'
+htmlStr +='<option value="2215">10:15 PM</>'
+htmlStr +='<option value="2230">10:30 PM</>'
+htmlStr +='<option value="2245">10:45 PM</>'
+htmlStr +='<option value="2300">11:00 PM</>'
+htmlStr +='<option value="2315">11:15 PM</>'
+htmlStr +='<option value="2330">11:30 PM</>'
+htmlStr +='<option value="2345">11:45 PM</option>'
+htmlStr +='</select>'
+
+   htmlStr +="                        <p></p>"
+   htmlStr +="                    </td>"
+   htmlStr +="                    <td>"
+   htmlStr +="                        <input type=\"radio\" name=\"EO\" id=\"EO_1\" checked=\"\" onclick=\"setStateById('EO_2_1',true);setStateById('EO_3',true)\">_(Everyday)_<br>"
+   htmlStr +="                        <input type=\"radio\" name=\"EO\" id=\"EO_2\" onclick=\"setStateById('EO_2_1',false);setStateById('EO_3',true)\">_(On)_"
+   htmlStr +="                        <select id=\"EO_2_1\" class=\"font100\" disabled>"
+   htmlStr +="                            <option value='Schooldays'>_(Schooldays)_</option>"
+   htmlStr +="                            <option value='Weekends'>_(Weekends)_</option>"
+   htmlStr +="                            <option value='Mondays'>_(Mondays)_</option>"
+   htmlStr +="                            <option value='Tuesdays'>_(Tuesdays)_</option>"
+   htmlStr +="                            <option value='Wednesdays'>_(Wednesdays)_</option>"
+   htmlStr +="                            <option value='Thursdays'>_(Thursdays)_</option>"
+   htmlStr +="                            <option value='Fridays'>_(Fridays)_</option>"
+   htmlStr +="                            <option value='Saturdays'>_(Saturdays)_</option>"
+   htmlStr +="                            <option value='Sundays'>_(Sundays)_</option>"
+   htmlStr +="                        </select>"
+   htmlStr +="                        <br>"
+   htmlStr +="                        <input type=\"radio\" name=\"EO\" id=\"EO_4\" onclick=\"setStateById('EO_2_1',true);setStateById('EO_3',false)\">_(This Date)_"
+   htmlStr +="                        <input type=\"text\" id=\"EO_3\" class=\"font100\" disabled><br>_((YYYY-MM-DD))_"
+   htmlStr +="                    </td>"
+   htmlStr +="                    <td>"
+   htmlStr +="                       <a href='#' class='button1' type='button' onClick=\"save_rule();\" style='text-decoration:none;'><span>_(Save)_</span></a>"
+   htmlStr +="                    </td>"
+   htmlStr +="                </tr>"
+   htmlStr +="            </tbody></table>"
+   if(name=='all'){
+       htmlStr +="            <h3>_(Existing Rules for Childs)_</h3>";
+  
+   }else
+   {
+       htmlStr +="            <h3>_(Existing Rules for)_ " + name + "</h3>";
+   }
+
+   if(pc_rules_list.length > 0)
+   {
+   htmlStr +="            <table class=\"status_style\" style=\"margin: 10px auto 0pt;\" align=\"center\" border=\"0\" cellpadding=\"5\" cellspacing=\"0\" width=\"95%\" >"
+   htmlStr +="                <tbody>"
+
+
+   for(i=0; i<pc_rules_list.length;i++)
+   {
+       if(pc_rules_list[i][0]==mac && pc_rules_list[i][1]==name)
+       {
+           htmlStr +="               <tr> <td>" + pc_rules_list[i][2] + "</td>"
+           htmlStr +="                    <td>" + pc_rules_list[i][3] + "</td>"
+           if(pc_rules_list[i][4] == '1')
+           {
+               htmlStr +="                    <td>_(Always)_</td>"
+           }
+           else
+           {
+         
+               htmlStr +="                    <td>_(From)_ " + pc_rules_list[i][5] + " _(To)_ " + pc_rules_list[i][6] + "</td>"
+           }
+           htmlStr +="                    <td>_(On)_ " + pc_rules_list[i][7] +"</td>"
+           htmlStr +="                    <td>"
+           htmlStr +="                        <a href='#' class='button1' type='button' onClick=\"edit_rule(" + i +");\" style='text-decoration:none;'><span>_(Edit)_</span></a>"
+           htmlStr +="                        <a href='#' class='button1' type='button' onClick=\"removeRule("+ pc_rules_list[i][10] +");\" style='text-decoration:none;'><span>_(Remove)_</span></a>"
+           htmlStr +="                    </td>"
+           htmlStr +="                </tr>"
+       }
+   }
+
+
+   htmlStr +="            </tbody></table>"
+   }
+   htmlStr +="        </form>"
+   return htmlStr;
+}
+
+function changeDeviceName(newName,i)
+{
+    pc_hosts_list[i][0]=newName;
+}
+
+function show_pc_hosts_table()
+{
+    var i,j;
+    for (i=0;i<pc_hosts_list.length;i++)
+    {
+        document.write("<tr>  <td class=\"pc_table_lineL col1\">" + '<input type="text" onchange="changeDeviceName(this.value,' + i + ')" ' + 'value = ' + pc_hosts_list[i][0] +"></td>");
+        document.write("        <td class=\"pc_table_lineC col2\">" + pc_hosts_list[i][1] +"</td>");
+        document.write("        <td class=\"pc_table_lineC col3\">");
+        document.write("        <div class=\"pc_table_lineS\"><input type=\"radio\" name=\"radio"+i +"\" onclick=\"setAsChild("+i+");\"" + ((pc_hosts_list[i][2]=='1')?"checked":"") +" >_(CHILD)_</div>");
+        document.write("        <div class=\"pc_table_lineS\"><input type=\"radio\" name=\"radio"+i+"\" onclick=\"setAsParent("+i+");\"" + ((pc_hosts_list[i][2]=='0')?"checked":"") +" >_(PARENT)_</div>");
+        document.write("      </td>");
+        document.write("      <td class=\"pc_table_lineC col4\">");
+        document.write("      <a href='#' class='button1' type='button' onClick=\"set_device('" +pc_hosts_list[i][0]+ "','" +pc_hosts_list[i][1]+ "');\" style='text-decoration:none;'><span>_(Set Device Rule)_</span></a>");
+        document.write("      </td>");
+        if(i==0)
+        {
+            document.write("      <td class=\"pc_table_lineC col5\" rowspan=\""+pc_hosts_list.length +"\">");
+            document.write("       <a href='#' class='button1' type='button' onClick=\"set_children();\" style='text-decoration:none;'><span>_(Set Childs Rule)_</span></a>");
+// <input type=\"button\" class='button1'  onclick=\"set_children();\" value=\"Set Childs&#39; Restrictions\" >");
+            document.write("      </td>");
+        }
+        document.write("</tr>");
+    }
+}
+
+/**
+ * isValidDate(str)
+ * @param string str value yyyy-mm-dd
+ * @return boolean true or false
+ * IF date is valid return true
+ */
+function isValidDate(str){
+	// STRING FORMAT yyyy-mm-dd
+	if(str=="" || str==null){return false;}								
+	
+	// m[1] is year 'YYYY' * m[2] is month 'MM' * m[3] is day 'DD'					
+	var m = str.match(/(\d{4})-(\d{2})-(\d{2})/);
+	
+	// STR IS NOT FIT m IS NOT OBJECT
+	if( m === null || typeof m !== 'object'){return false;}				
+	
+	// CHECK m TYPE
+	if (typeof m !== 'object' && m !== null && m.size!==3){return false;}
+				
+	var ret = true; //RETURN VALUE						
+	var thisYear = new Date().getFullYear(); //YEAR NOW
+        var thisMonth= new Date().getMonth() + 1;
+        var thisDate = new Date().getDate();
+
+	var minYear = 2016; //MIN YEAR
+	
+	// YEAR CHECK
+	if( (m[1].length < 4) || m[1] < thisYear ){return false;}
+        
+	// MONTH CHECK			
+        if( (m[2].length < 2) || m[2] < 1 || m[2] > 12){return  false;}
+        if( (thisYear==m[1]) && (m[2] < thisMonth) ) { return false; }
+	// DAY CHECK
+	if( (m[3].length < 2) || m[3] < 1 || m[3] > 31){return false;}
+        if( (thisYear==m[1])  && (m[2] == thisMonth) && (m[3] < thisDate) ) { return false;}
+	
+	return ret;			
+}
+
+function setStateById(id,state)
+{
+    document.getElementById(id).disabled = state;
+}
+
+function PC_switch()
+{
+    pc_enable = (pc_enable=='1')?'0':'1';
+    updateTag();
+}
+
+function updateTag()
+{
+    var lochead = 'updateTag.cmd?';
+    var loc = 'parentControlTag=';
+    var i;
+    for(i=0; i<pc_hosts_list.length;i++)
+    {
+        if(i>0) loc += '|';
+        loc += (pc_hosts_list[i][0] + '/' + pc_hosts_list[i][1] + '/' + pc_hosts_list[i][2]);
+    }
+    loc += '&pc_enable=' + pc_enable;
+    loc += '&needthankyou=advancedsetup_parentcontrol.html';
+    loc += '&sessionKey=' + sessionKey;
+    lochead+=loc;
+    postSubmit(lochead);
+}
+
+function removeRule(ruleID)
+{
+    var lochead = 'setParentControlRule.cmd?action=remove';
+    var loc = '&ruleID=' + ruleID;
+    loc += '&needthankyou=advancedsetup_parentcontrol.html';
+    loc += '&sessionKey=' + sessionKey;
+    lochead+=loc;
+    postSubmit(lochead);
+
+}
+
+function modifyRule(ruleID)
+{
+    var lochead = 'setParentControlRule.cmd?action=modify&ruleID='+ruleID;
+    var loc = '&ruleDeviceName=' + ruleDeviceName+"&ruleDeviceMac="+ruleDeviceMac;
+    if (document.getElementById('RA_restrict').checked)
+    {
+        loc += "&restrictOrAllow=Restrict"
+    }else
+    {
+        loc += "&restrictOrAllow=Allow"
+    }
+
+    if (document.getElementById('AT_allpages').checked)
+    {
+        loc += "&webpage=All Webpages"
+    }else
+    {
+        loc += "&webpage="+document.getElementById('AT_webpage').value;
+    }
+    if (document.getElementById('isAlways').checked)
+    {
+        loc += "&isAlways=1"
+        loc += "&startTime=800"
+        loc += "&endTime=2000"
+    }else
+    {
+        loc += "&isAlways=0"
+        loc += "&startTime="+document.getElementById('startTime').value;
+        loc += "&endTime="+document.getElementById('endTime').value;
+    }
+
+    if (document.getElementById('EO_1').checked)
+    {
+        loc += "&days=Everyday"
+    }else if (document.getElementById('EO_2').checked)
+    {
+        loc += "&days="+ document.getElementById('EO_2_1').value;
+    }
+    else
+    {
+        if(isValidDate(document.getElementById('EO_3').value)==false)
+        {
+            alert("_(Please correct the Date)_");
+            return ;
+        }
+        loc += "&days=" + document.getElementById('EO_3').value;
+    }
+
+
+
+    loc += '&needthankyou=advancedsetup_parentcontrol.html';
+    loc += '&sessionKey=' + sessionKey;
+    lochead+=loc;
+    postSubmit(lochead);
+
+
+}
+function addRule()
+{
+    var lochead = 'setParentControlRule.cmd?action=add';
+    var loc = '&ruleDeviceName=' + ruleDeviceName+"&ruleDeviceMac="+ruleDeviceMac;
+    if (document.getElementById('RA_restrict').checked)
+    {
+        loc += "&restrictOrAllow=Restrict"
+    }else
+    {
+        loc += "&restrictOrAllow=Allow"
+    }
+
+    if (document.getElementById('AT_allpages').checked)
+    {
+        loc += "&webpage=All Webpages"
+    }else
+    {
+        loc += "&webpage="+document.getElementById('AT_webpage').value;
+    }
+    if (document.getElementById('isAlways').checked)
+    {
+        loc += "&isAlways=1"
+        loc += "&startTime=800"
+        loc += "&endTime=2000"
+    }else
+    {
+        loc += "&isAlways=0"
+        loc += "&startTime="+document.getElementById('startTime').value;
+        loc += "&endTime="+document.getElementById('endTime').value;
+    }
+
+    if (document.getElementById('EO_1').checked)
+    {
+        loc += "&days=Everyday"
+    }else if (document.getElementById('EO_2').checked)
+    {
+        loc += "&days="+ document.getElementById('EO_2_1').value;
+    }
+    else
+    {
+        if(isValidDate(document.getElementById('EO_3').value)==false)
+        {
+            alert("_(Please correct the Date)_");
+            return ;
+        }
+        loc += "&days=" + document.getElementById('EO_3').value;
+    }
+
+
+
+    loc += '&needthankyou=advancedsetup_parentcontrol.html';
+    loc += '&sessionKey=' + sessionKey;
+    lochead+=loc;
+    postSubmit(lochead);
+
+}
+function edit_rule(index)
+{
+    modify_ruleID=pc_rules_list[index][10];
+    if(pc_rules_list[index][2] == "Restrict")
+    {
+        document.getElementById('RA_restrict').checked = true;
+    }else
+    {
+        document.getElementById('RA_allow').checked = true;
+    }
+    if(pc_rules_list[index][3] == "All Webpages")
+    {
+        document.getElementById('AT_allpages').checked = true;
+        setStateById('AT_webpage',true);
+    }else
+    {
+        document.getElementById('AT_webpage1').checked = true;
+        document.getElementById('AT_webpage').value = pc_rules_list[index][3];
+        setStateById('AT_webpage',false);
+    }
+    if(pc_rules_list[index][4] == "1")
+    {
+        document.getElementById('isAlways').checked=true;
+        setStateById('startTime',true);
+        setStateById('endTime',true);
+    }
+    else
+    {
+        document.getElementById('isNotAlways').checked=true;
+        setStateById('startTime',false);
+        setStateById('endTime',false);
+
+        var sel= document.getElementById('startTime');
+        for(var i = 0; i < sel.options.length;  ++i) {
+           if(sel.options[i].value  == pc_rules_list[index][5]) {
+               sel.selectedIndex = i;
+               break;
+           }
+       }
+       var sel= document.getElementById('endTime');
+        for(var i = 0; i < sel.options.length;  ++i) {
+           if(sel.options[i].value  == pc_rules_list[index][6]) {
+               sel.selectedIndex = i;
+               break;
+           }
+       }
+    }
+    if(pc_rules_list[index][7] == "Everyday")
+    {
+        document.getElementById('EO_1').checked=true;
+        setStateById('EO_2_1',true);
+        setStateById('EO_3',true);
+    }else if (pc_rules_list[index][7] == "Schooldays" ||
+              pc_rules_list[index][7] == "Weekends" ||
+              pc_rules_list[index][7] == "Mondays" ||
+              pc_rules_list[index][7] == "Tuesdays" ||
+              pc_rules_list[index][7] == "Wednesdays" ||
+              pc_rules_list[index][7] == "Thursdays" ||
+              pc_rules_list[index][7] == "Fridays" ||
+              pc_rules_list[index][7] == "Saturdays" ||
+              pc_rules_list[index][7] == "Sundays")
+   {
+       document.getElementById('EO_2').checked=true;
+       setStateById('EO_2_1',false);
+       setStateById('EO_3',true);
+       var sel = document.getElementById('EO_2_1');
+       for(var i = 0; i < sel.options.length;  ++i) {
+           if(sel.options[i].value  == pc_rules_list[index][7]) {
+               sel.selectedIndex = i;
+               break;
+           }
+       }
+   }else
+   {
+       document.getElementById('EO_4').checked=true;
+       document.getElementById('EO_3').value=pc_rules_list[index][7];
+       setStateById('EO_2_1',true);
+       setStateById('EO_3',false);     
+   }
+
+}
+function save_rule()
+{
+    if(modify_ruleID=="")
+    {
+        addRule();
+    }else
+    {
+        modifyRule(modify_ruleID);
+    }
+}
+function do_load()
+{
+    if(pc_enable=='1')
+    {
+        document.getElementById("pc_enableOrDisable").innerHTML="_(Disable)_";
+    }else{
+        document.getElementById("pc_enableOrDisable").innerHTML="_(Enable)_";
+    }
+    
+    document.getElementById("current_device_id").innerHTML=devinfo_list[0];
+    side_nav("advancedsetup_parentcontrol");
+}
+
+function dom_load(){ do_load(); }
+
+</script>
+</head>
+<body>
+<div id="wrapper">
+    <!-- TOP NAV -->
+    <%ejInclude(top_btn_nav5.html)%>
+    <!-- END TOP NAV -->
+    <!-- SIDE NAV -->
+    <%ejInclude(adv_left.html)%>
+    <!-- END SIDE NAV -->
+
+    <!-- MAIN CONTENT AREA -->
+    <div id="content_right">
+		<div id="content_right_header"></div>
+		<div id="content_right_contentarea">
+        <h1>_(Parental Controls Configuration)_</h1>
+        <p> _(Your)_ <span id="current_device_id"></span> _(Residential Gateway allows you to control the access)_<br>
+            _(to the Internet for all the devices in your home in three easy steps)_:<br>
+        <h2>_(Controls for minors)_:</h2>
+        <p>
+            1. _(Tag some devices as CHILD)_.<br>
+            2. _(Create time restrictions for all CHILD devices)_.<br>
+            3. _(Create webpage restrictions for all CHILD devices)_(_(Only support http, not support https)_).<br>
+        </p>
+        <h2>_(Controls for adults)_:</h2>
+        <p>
+            _(Devices not tagged as CHILD are considered PARENT and not subject to those controls)_.<br>
+        </p>
+        <h2>_(Controls per device)_:</h2>
+        <p>
+            1. _(Select a target device)_.<br>
+            2. _(Create time restrictions for that particular device)_.<br>
+            3. _(Create webpage restrictions for that particular device)_(_(Only support http, not support https)_).<br>
+                 
+        </p>
+        <br>
+        <p>
+        _(The controls per device take priority over the CHILD controls)_.<br>
+        </p>
+
+        <p><a href='#' class='button1' type='button' onClick='updateTag()' style='text-decoration:none;'><span>_(Update Tag)_</span></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+           <a href='#' class='button1' type='button' onClick='PC_switch()'  style='text-decoration:none;'><span id="pc_enableOrDisable">_(Enable)_</span></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        </p><br>    
+
+        <table class="status_style" style="margin: 10px auto 0pt;" align="center" border="0" cellpadding="5" cellspacing="0" width="100%">
+            <thead>
+                <tr>
+                    <th width="80" align="left">_(Client Device)_</th>
+                    <th width="100" align="left">_(MAC Address)_</th>
+                    <th width="80" align="left">_(Control Tag)_</th>
+                    <th width="150" align="left">_(Internet Access Controls)_</th>
+                    <th width="150" align="left">_(Parental Controls)_</th>
+                </tr>
+            </thead>
+                            <script language="javascript">
+                                show_pc_hosts_table();
+                            </script>
+        </table>
+    
+        <br><br>
+
+        <div id="child_restrictions_input">
+        <span id="span_list_rules"></span>
+        
+        </div>
+
+ 
+		</div>
+		<div id="content_right_footer"></div>
+	</div>
+	<div class="clear_left"></div>
+	<div id="footer">&nbsp;</div>
+</div>
+<SCRIPT LANGUAGE="JavaScript">var foobar = new domFunction(dom_load);</SCRIPT></body>
+</html>
